@@ -1,8 +1,31 @@
 import streamlit as st
-import requests
 
-# Define the Flask API URL
-API_URL = "http://127.0.0.1:5000/predict"
+
+page_bg_img="""
+<style>
+[data-testid="stMain"] {
+background-image: url("https://unsplash.com/photos/a-woman-working-on-a-laptop-6uAssP0vuPs");
+background-size: cover;
+}
+</style>
+"""
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
+
+with open('app.css') as f:
+    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# Define a simple prediction function
+def predict_performance_and_injury(data):
+    # Dummy calculation for demonstration
+    performance_score = (data["Endurance_Score"] * 0.4 + 
+                         data["Strength_Score"] * 0.3 + 
+                         data["Experience_years"] * 0.2 + 
+                         data["Matches_Played"] * 0.1)
+    
+    injury_risk = "High" if data["Strength_Score"] < 50 else "Low"
+    
+    return {"Performance_Score": round(performance_score, 2), "Injury_Risk": injury_risk}
 
 # Streamlit UI
 st.title("Sports Performance and Injury Prediction")
@@ -16,7 +39,7 @@ matches = st.number_input("Matches Played", min_value=0, max_value=200, value=20
 endurance = st.number_input("Endurance Score", min_value=0, max_value=100, value=80)
 strength = st.number_input("Strength Score", min_value=0, max_value=100, value=90)
 
-# Button to send the request
+# Button to predict
 if st.button("Predict Performance & Injury Risk"):
     data = {
         "Age": age,
@@ -28,14 +51,8 @@ if st.button("Predict Performance & Injury Risk"):
         "Strength_Score": strength
     }
     
-    try:
-        response = requests.post(API_URL, json=data)
-        if response.status_code == 200:
-            result = response.json()
-            st.success(f"**Performance Score:** {result['Performance_Score']}")
-            st.warning(f"**Injury Risk:** {result['Injury_Risk']}")
-        else:
-            st.error(f"Error: {response.status_code} - {response.text}")
-    except requests.exceptions.RequestException as e:
-        st.error(f"Request failed: {e}")
+    # Call local function instead of sending API request
+    result = predict_performance_and_injury(data)
 
+    st.success(f"**Performance Score:** {result['Performance_Score']}")
+    st.warning(f"**Injury Risk:** {result['Injury_Risk']}")
